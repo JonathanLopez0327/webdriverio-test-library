@@ -114,4 +114,16 @@ export default class BasePage {
     public async isDisplayed(element: ChainablePromiseElement): Promise<boolean> {
         return await element.isDisplayed();
     }
+
+    public async acceptAlert() {
+        return await browser.acceptAlert();
+    }
+
+    public async desmisAlert() {
+        return await browser.dismissAlert();
+    }
+
+    public async scrollIntoView(element: ChainablePromiseElement) {
+        await element.scrollIntoView();
+    }
 }
