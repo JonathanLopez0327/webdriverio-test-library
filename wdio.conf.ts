@@ -1,6 +1,7 @@
 import type { Options } from "@wdio/types";
-import allure from 'allure-commandline';
+import allure from "allure-commandline";
 
+let allureDir = "./reports/allure";
 
 export const config: Options.Testrunner = {
   //
@@ -56,7 +57,7 @@ export const config: Options.Testrunner = {
   capabilities: [
     {
       browserName: "chrome",
-    }
+    },
   ],
 
   //
@@ -129,11 +130,16 @@ export const config: Options.Testrunner = {
   // Test reporter for stdout.
   // The only one supported by default is 'dot'
   // see also: https://webdriver.io/docs/dot-reporter
-  reporters: [['allure', {
-    outputDir: 'allure-results',
-    disableWebdriverStepsReporting: true,
-    disableWebdriverScreenshotsReporting: false,
-  }]],
+  reporters: [
+    [
+      "allure",
+      {
+        outputDir: allureDir + "/allure-results",
+        disableWebdriverStepsReporting: true,
+        disableWebdriverScreenshotsReporting: false,
+      },
+    ],
+  ],
 
   // Options to be passed to Mocha.
   // See the full list at http://mochajs.org/
@@ -207,8 +213,23 @@ export const config: Options.Testrunner = {
    * Hook that gets executed before the suite starts
    * @param {object} suite suite details
    */
-  // beforeSuite: function (suite) {
-  // },
+  beforeSuite: function (suite) {
+    const fs = require("fs");
+    let dir = allureDir + '/allure-results';
+    
+    try {
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true });
+        console.log("Allure results directory cleaned");
+      }
+    } catch (err) {
+      console.error(err);
+      if (!fs.existsSync(allureDir)) {
+        fs.mkdirSync(allureDir);
+        console.log("Allure results directory created");
+      }
+    }
+  },
   /**
    * Function to be executed before a test (in Mocha/Jasmine) starts.
    */
@@ -238,11 +259,15 @@ export const config: Options.Testrunner = {
    */
   // afterTest: function(test, context, { error, result, duration, passed, retries }) {
   // },
-  afterTest: async function(test, context, { error, result, duration, passed, retries }) {
+  afterTest: async function (
+    test,
+    context,
+    { error, result, duration, passed, retries }
+  ) {
     if (test.error !== undefined) {
       await browser.takeScreenshot();
     }
-},
+  },
 
   /**
    * Hook that gets executed after the suite has ended
@@ -285,26 +310,31 @@ export const config: Options.Testrunner = {
    * @param {<Object>} results object containing test results
    */
   onComplete: function () {
-    const reportError = new Error('Could not generate Allure report')
-    const generation = allure(['generate', 'allure-results', '--clean'])
-    
-    return new Promise<void>((resolve, reject) => {
-      const generationTimeout = setTimeout(
-        () => reject(reportError),
-        5000)
+    const reportError = new Error("Could not generate Allure report");
+    const generation = allure([
+      "generate",
+      allureDir + "/allure-results",
+      "--clean",
+      "-o",
+      allureDir + "/allure-report",
+    ]);
 
-      generation.on('exit', function (exitCode: number) {
-        clearTimeout(generationTimeout)
+    return new Promise<void>((resolve, reject) => {
+      const generationTimeout = setTimeout(() => reject(reportError), 5000);
+
+      generation.on("exit", function (exitCode: number) {
+        clearTimeout(generationTimeout);
 
         if (exitCode !== 0) {
-          return reject(reportError)
+          return reject(reportError);
         }
 
-        console.log('Allure report successfully generated')
-        resolve()
-      })
-    })
-  }
+        console.log("Allure report successfully generated");
+        resolve();
+      });
+    });
+  },
+
   /**
    * Gets executed when a refresh happens.
    * @param {string} oldSessionId session ID of the old session

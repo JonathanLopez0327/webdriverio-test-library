@@ -1,0 +1,1 @@
+[{"uid":"6549a9a225b403a5","name":"should allow user to login","time":{"start":1725721034047,"stop":1725721034974,"duration":927},"status":"passed","severity":"normal"},{"uid":"ac01edc80bce7efc","name":"should block the user from logging in if they have invalid credentials.","time":{"start":1725721034974,"stop":1725721035201,"duration":227},"status":"passed","severity":"normal"}]
